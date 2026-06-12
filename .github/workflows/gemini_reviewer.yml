@@ -2,9 +2,7 @@ name: Gemini PR Review
 
 on:
   pull_request:
-    types:
-      - opened
-      - synchronize
+    types: [opened, synchronize]
 
 jobs:
   review:
@@ -18,9 +16,7 @@ jobs:
           fetch-depth: 0
 
       - name: Get Code Diff
-        id: get_diff
-        run: |
-          git diff origin/${{ github.event.pull_request.base.ref }}...HEAD > pr_diff.txt
+        run: git diff origin/${{ github.event.pull_request.base.ref }}...HEAD > pr_diff.txt
 
       - name: Setup Python
         uses: actions/setup-python@v5
