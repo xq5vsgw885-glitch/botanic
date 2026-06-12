@@ -1,10 +1,11 @@
 import os
 import subprocess
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 
 # API Keys und Variablen laden
-genai.configure(api_key=os.environ["GEMINI_API_KEY"])
-pr_number = os.environ["PR_NUMBER"]
+api_key = os.environ.get("GEMINI_API_KEY")
+pr_number = os.environ.get("PR_NUMBER")
 
 # Diff-Datei lesen
 try:
@@ -28,15 +29,20 @@ Suche gezielt nach systematischen Fehlern, blinden Flecken und Architekturverlet
 Sei direkt, schonungslos aber konstruktiv. Zeige immer an, wie es stattdessen gelöst werden muss.
 """
 
-# KI-Modell initialisieren
-model = genai.GenerativeModel(
-    model_name='gemini-1.5-pro',
-    system_instruction=system_instruction
-)
+# Client mit dem neuen SDK initialisieren
+client = genai.Client(api_key=api_key)
+
+# Prompt zusammenbauen
+prompt = f"Hier ist der Git-Diff eines neuen Pull Requests. Führe ein kritisches Code-Review durch:\n\n{diff_content}"
 
 # Review generieren
-prompt = f"Hier ist der Git-Diff eines neuen Pull Requests. Führe ein kritisches Code-Review durch:\n\n{diff_content}"
-response = model.generate_content(prompt)
+response = client.models.generate_content(
+    model='gemini-1.5-pro',
+    contents=prompt,
+    config=types.GenerateContentConfig(
+        system_instruction=system_instruction,
+    )
+)
 
 # Review in temporäre Datei schreiben für GitHub CLI
 with open("review_output.txt", "w") as f:
